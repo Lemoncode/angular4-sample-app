@@ -1,135 +1,166 @@
-# Displaying data
+# Displaying collections
 
-In this sample we will install Bootstrap, add some styles and create some custom data to display a table in our app.
-We will take as starting point the sample 00 Hello World.
+In this sample we will make some changes to our main component to display a customer collection. We will create a new component that will be used by our main component to dynamically display each customer.
+We will take as starting point the sample 01 Displaying Data.
 
 ## Summary
-- Add Bootstrap
-- Create customer entity
-- Add some customers to our main component and change the component template
+- Change main component customers
+- Create new component with template
+- Use the new component to display each customer in our main component's template
 
-### Add Bootstrap
+### Make some cleaning
 
-To add Bootstrap to the project open a command prompt, first locate yourself inside the project folder and execute:
-
-```shell
-npm install bootstrap --save
-```
-
-Next let's create a `styles.css` file under `src` folder, import Bootstrap and add some basic style:
-
-```css
-/* You can add global styles to this file, and also import other style files */
-@import '../node_modules/bootstrap/dist/css/bootstrap.css';
-
-body {
-  padding: 50px;
-}
-```
-
-### Create customer entity
-
-Now we have set up some styles let's create a `models` folder inside `src/app` and create a `customer.model.ts` file. This entity will have some basic info and a method to get the age:
-
-```ts
-export class Customer {
-  firstName: string;
-  lastName: string;
-  birthdate: Date;
-  imageUrl?: string;
-
-  constructor(firstName?: string,
-    lastName?: string,
-    birthdate?: string,
-    imageUrl?: string) {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.birthdate = new Date(birthdate);
-    this.imageUrl = imageUrl;
-  }
-
-  getAge(): number {
-    const millisecondsDiff: number = Date.now() - this.birthdate.getTime();
-    const ageDate = new Date(millisecondsDiff);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-  }
-}
-```
-
-### Add some customers to our application
-
-First let's change the title for something more descriptive like _Displaying Data Demo_.
+Let's start by changing the `AppComponent.title` to show something more apropiated for this example:
 
 ```diff
+...
   export class AppComponent implements OnInit {
--   title = 'app works!';
-+   title = 'Displaying Data Demo';
-```
-
-Next let's create a customer array as a private property to hold some data and initialize it in the constructor:
-
-```diff
-  export class AppComponent implements OnInit {
-    title = 'Displaying Data Demo';
-+   private customers: Customer[];
-+
-+   constructor() {
-+     this.customers = [
-+       new Customer('Jai', 'Sal', '25 June 1981', 'http://vignette2.wikia.nocookie.+et/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?+b=20150615084744'),
-+       new Customer('Fer', 'Sal', '25 November 1984'),
-+       new Customer('Lau', 'Sal', '04 March 2013')
-+     ];
-+   }
+-   title = 'Displaying Data Demo';
++   title = 'Displaying Collections Demo';
+    private customers: Customer[];
+    customer: Customer;
 ...
 ```
 
-Then let's add the main customer we're going to display. It will be a public property called `customer` and will be initialized in `ngOnInit` method lyfecycle:
+Next we'll remove the `customer` reference and make `customers` collection public. We also add an avatar for each customer:
 
 ```diff
+...
   export class AppComponent implements OnInit {
-    title = 'Displaying Data Demo';
-    private customers: Customer[];
-+   customer: Customer;
+-   private customers: Customer[];
+-   customer: Customer;
+    title = 'Displaying Collections Demo';
++   customers: Customer[];
 
-    constructor() {
-      ...
-    }
+    constructor() {}
 
     ngOnInit() {
-+     this.customer = this.customers[0];
+      this.customers = [
+        new Customer('Jai', 'Sal', '25 June 1981',
+        'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744'),
+-       new Customer('Fer', 'Sal', '25 November 1984'),
+-       new Customer('Lau', 'Sal', '04 March 2013')
++       new Customer('Fer', 'Sal', '25 November 1984',
++       'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236'),
++       new Customer('Lau', 'Sal', '04 March 2013',
++       'https://vignette2.wikia.nocookie.net/pixar/images/e/ed/Joy-Inside-Out-borders.jpg/revision/latest?cb=20150718214419')
+      ];
     }
   }
 ```
 
-Finally let's change the `app.component.html` template to display the customer info. We'll use Bootstrap basic layout to display a row showing the first name, last name, age and an image showing the avatar:
+### Creating a row component
+
+To make some separation of concepts we will create a new component that receives a customer and shows its personal info. To achieve this let's start by creating a new folder inside `src/app` called `customer` and create a new `customer-summary.component.ts`:
+
+```ts
+import { Component, Input } from '@angular/core';
+import { Customer } from '../models/customer.model';
+// We can use prefix for all our components.
+@Component({
+    selector: 'app-customer-summary',
+    templateUrl: './customer-summary.component.html'
+})
+export class CustomerSummaryComponent {
+    @Input() customer: Customer;
+}
+```
+
+This component will receive a `Customer` entity and will reference it with the `@Input` decorator to store its reference in the `customer` property. This component will render a template to the customer information, so let's create a `customer-summary.component.html` beside the new component:
+
+```html
+<div class="row">
+  <div class="col-md-3">
+    <label>First Name:</label>
+    <span>{{customer.firstName}}</span>
+  </div>
+  <div class="col-md-3">
+    <label>Last Name:</label>
+    <span>{{customer.lastName}}</span>
+  </div>
+  <div class="col-md-3">
+    <label>Age:</label>
+    <span>{{customer.getAge()}}</span>
+  </div>
+  <div class="col-md-3">
+    <div class="portrait">
+      <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
+    </div>
+  </div>
+</div>
+```
+
+Now we have the new `CustomerSummaryComponent` let's declare it in our app's module `declarations` section to be available as a dependency:
+
+```diff
+  ...
+  import { AppComponent } from './app.component';
++ import { CustomerSummaryComponent } from './customer/customer-summary.component';
+
+  @NgModule({
+    declarations: [
+-     AppComponent
++     AppComponent,
++     CustomerSummaryComponent
+    ],
+    imports: [
+      BrowserModule,
+      FormsModule,
+      HttpModule
+    ],
+    providers: [],
+    bootstrap: [AppComponent]
+  })
+  export class AppModule { }
+```
+
+Finally we can use the new `CustomerSummaryComponent` in our `AppComponent` template directly. Let's remove the customer rendering logic and use the `CustomerSummaryComponent` template `app-customer-summary`:
 
 ```diff
   <h1>
     {{title}}
   </h1>
-+
-+ <div class="row">
-+   <div class="col-md-3">
-+     <label>First Name:</label>
-+     <span>{{customer.firstName}}</span>
-+   </div>
-+   <div class="col-md-3">
-+     <label>Last Name:</label>
-+     <span>{{customer.lastName}}</span>
-+   </div>
-+   <div class="col-md-3">
-+     <label>Age:</label>
-+     <span>{{customer.getAge()}}</span>
-+   </div>
-+   <div class="col-md-3">
-+     <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
-+   </div>
+
+- <div class="row">
+-   <div class="col-md-3">
+-     <label>First Name:</label>
+-     <span>{{customer.firstName}}</span>
+-   </div>
+-   <div class="col-md-3">
+-     <label>Last Name:</label>
+-     <span>{{customer.lastName}}</span>
+-   </div>
+-   <div class="col-md-3">
+-     <label>Age:</label>
+-     <span>{{customer.getAge()}}</span>
+-   </div>
+-   <div class="col-md-3">
+-     <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
+-   </div>
+- </div>
++ <!--Show how works ngFor-->
++ <div class="container" *ngFor="let customer of customers">
++   <app-customer-summary [customer]=customer>
++   </app-customer-summary>
 + </div>
 ```
 
-To see the result execute `npm start` (or `ng serve`) in the command prompt and open [http://localhost:4200](http://localhost:4200).
+As you can see we are iterating through the `AppComponent's customer` collection and feeding each `customer` to the `CustomerSummaryComponent` via `customer` attribute.
 
-In the next sample we will display the customers collection by creating a new component that will render each row.
+> Note we use `<app-customer-summary>` tag instead of `<customer-summary-component>`. That's why we declared the `selector` as `app-customer-summary` in `CustomerSummaryComponen's @Component` decorator and the tag name must be the same as `selector` name.
+
+Finally let's edit `styles.css` file to make the images smaller:
+
+```diff
+- body {
+-   padding: 50px;
+- }
++ .portrait img {
++   width: 150px;
++ }
+```
+
+To see the result open a command prompt and locate yourself into the project folder and execute `npm start` (or `ng serve`) and open [http://localhost:4200](http://localhost:4200) in the browser;
 
 ---
 
