@@ -1,0 +1,9 @@
+<h1>
+  {{title}}
+</h1>
+
+<!--Show how works ngFor-->
+<div class="container" *ngFor="let customer of customers">
+  <app-customer-summary [customer]=customer>
+  </app-customer-summary>
+</div>
