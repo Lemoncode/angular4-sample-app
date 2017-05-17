@@ -8,9 +8,11 @@ We will take as starting point the sample 01 Displaying Data.
 - Create new component with template
 - Use the new component to display each customer in our main component's template
 
-### Make some cleaning
+## Steps
 
-Let's start by changing the `AppComponent.title` to show something more apropiated for this example:
+### Cleaning `AppComponent`
+
+Let's start by changing the `title` of our main component to show something more apropiated for this example:
 
 ```diff
 ...
@@ -51,11 +53,12 @@ Next we'll remove the `customer` reference and make `customers` collection publi
 
 ### Creating a row component
 
-To make some separation of concepts we will create a new component that receives a customer and shows its personal info. To achieve this let's start by creating a new folder inside `src/app` called `customer` and create a new `customer-summary.component.ts`:
+To make some separation of concepts we will create a new component that receives a customer and shows its personal info. To achieve this let's start by creating a new folder inside `src/app` called `customer` and create a new `customer-summary.component.ts` file inside it:
 
 ```ts
 import { Component, Input } from '@angular/core';
 import { Customer } from '../models/customer.model';
+
 // We can use prefix for all our components.
 @Component({
     selector: 'app-customer-summary',
@@ -90,7 +93,7 @@ This component will receive a `Customer` entity and will reference it with the `
 </div>
 ```
 
-Now we have the new `CustomerSummaryComponent` let's declare it in our app's module `declarations` section to be available as a dependency:
+Now we have the new `CustomerSummaryComponent` let's declare it in our app's module `declarations` section to be available as a module dependency:
 
 ```diff
   ...
@@ -114,7 +117,7 @@ Now we have the new `CustomerSummaryComponent` let's declare it in our app's mod
   export class AppModule { }
 ```
 
-Finally we can use the new `CustomerSummaryComponent` in our `AppComponent` template directly. Let's remove the customer rendering logic and use the `CustomerSummaryComponent` template `app-customer-summary`:
+Finally we can use the new `CustomerSummaryComponent` in our `AppComponent` template directly thanks to the component registration in our `AppModule`. Let's remove the customer rendering logic and use the `CustomerSummaryComponent` template `app-customer-summary`:
 
 ```diff
   <h1>
@@ -145,9 +148,9 @@ Finally we can use the new `CustomerSummaryComponent` in our `AppComponent` temp
 + </div>
 ```
 
-As you can see we are iterating through the `AppComponent's customer` collection and feeding each `customer` to the `CustomerSummaryComponent` via `customer` attribute.
+As you can see we are iterating through the `customers` collection and feeding each `customer` to the `CustomerSummaryComponent` via `customer` attribute using the `ngFor` directive.
 
-> Note we use `<app-customer-summary>` tag instead of `<customer-summary-component>`. That's why we declared the `selector` as `app-customer-summary` in `CustomerSummaryComponen's @Component` decorator and the tag name must be the same as `selector` name.
+> Note we used `<app-customer-summary>` tag instead of `<customer-summary-component>`. This is because we named it **app-customer-summary** in `@Component` decorator of `CustomerSummaryComponent` and the tag name must coincide with the `selector` name.
 
 Finally let's edit `styles.css` file to make the images smaller:
 
