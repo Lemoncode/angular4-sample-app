@@ -165,6 +165,8 @@ Finally let's edit `styles.css` file to make the images smaller:
 
 To see the result open a command prompt and locate yourself into the project folder and execute `npm start` (or `ng serve`) and open [http://localhost:4200](http://localhost:4200) in the browser;
 
+In the next sample we will learn how to deal with user interactions, we'll attach some events to toggle the customers list visibility and show its contracts. We'll also create a simple service that will supply customers instead of initially having them in `AppComponent`.
+
 ---
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.0.2.
