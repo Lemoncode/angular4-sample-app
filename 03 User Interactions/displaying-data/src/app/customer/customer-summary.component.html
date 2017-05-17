@@ -1,19 +1,22 @@
-<div class="row">
-  <div class="col-md-3">
-    <label>First Name:</label>
-    <span>{{customer.firstName}}</span>
-  </div>
-  <div class="col-md-3">
-    <label>Last Name:</label>
-    <span>{{customer.lastName}}</span>
-  </div>
-  <div class="col-md-3">
-    <label>Age:</label>
-    <span>{{customer.getAge()}}</span>
-  </div>
-  <div class="col-md-3">
-    <div class="portrait">
-      <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
+<div class="well" (click)="selectCustomer(customerId)">
+  <div class="row">
+    <input type="text" #customerId [value]=customer.id [hidden]=true/>
+    <div class="col-md-3">
+      <label>First Name:</label>
+      <span>{{customer.firstName}}</span>
+    </div>
+    <div class="col-md-3">
+      <label>Last Name:</label>
+      <span>{{customer.lastName}}</span>
+    </div>
+    <div class="col-md-3">
+      <label>Age:</label>
+      <span>{{customer.getAge()}}</span>
+    </div>
+    <div class="col-md-3">
+      <div class="portrait">
+        <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
+      </div>
     </div>
   </div>
 </div>

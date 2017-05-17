@@ -1,169 +1,232 @@
-# Displaying collections
+# User Interactions
 
-In this sample we will make some changes to our main component to display a customer collection. We will create a new component that will be used by our main component to dynamically display each customer.
-We will take as starting point the sample 01 Displaying Data.
+In this sample we will create some events emitters to toggle the customers list visibility and show its contracts. We'll also create a simple service that will supply customers instead of initially having them in AppComponent.
+We will take as starting point the sample 02 Displaying Collections.
 
 ## Summary
-- Change main component customers
-- Create new component with template
-- Use the new component to display each customer in our main component's template
+- Create a `customerService` to hold customers and contracts. Inject the `customerService` in `AppComponent` to retrieve customers.
+- Create `Contract` model and add  itto `Customer` model as an Array.
+- Create a button to toggle customer list visibility.
+- Create a customer row handler to display extra customer info.
 
 ## Steps
 
-### Cleaning `AppComponent`
+### Cleaning AppComponent
 
-Let's start by changing the `title` of our main component to show something more apropiated for this example:
-
-```diff
-...
-  export class AppComponent implements OnInit {
--   title = 'Displaying Data Demo';
-+   title = 'Displaying Collections Demo';
-    private customers: Customer[];
-    customer: Customer;
-...
-```
-
-Next we'll remove the `customer` reference and make `customers` collection public. We also add an avatar for each customer:
+Let's start by adding a new property called `id` to our `Customer` model to give them an unique identifier:
 
 ```diff
-...
-  export class AppComponent implements OnInit {
--   private customers: Customer[];
--   customer: Customer;
-    title = 'Displaying Collections Demo';
-+   customers: Customer[];
+  export class Customer {
++   id: number;
+    firstName: string;
+    lastName: string;
+    birthdate: Date;
+    imageUrl?: string;
 
-    constructor() {}
+-   constructor(firstName?: string,
++   constructor(id: number,
++     firstName?: string,
+      lastName?: string,
+      birthdate?: string,
+      imageUrl?: string) {
++     this.id = id;
+      this.firstName = firstName;
+      this.lastName = lastName;
+      this.birthdate = new Date(birthdate);
+      this.imageUrl = imageUrl;
+    }
 
-    ngOnInit() {
-      this.customers = [
-        new Customer('Jai', 'Sal', '25 June 1981',
-        'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744'),
--       new Customer('Fer', 'Sal', '25 November 1984'),
--       new Customer('Lau', 'Sal', '04 March 2013')
-+       new Customer('Fer', 'Sal', '25 November 1984',
-+       'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236'),
-+       new Customer('Lau', 'Sal', '04 March 2013',
-+       'https://vignette2.wikia.nocookie.net/pixar/images/e/ed/Joy-Inside-Out-borders.jpg/revision/latest?cb=20150718214419')
-      ];
+    getAge(): number {
+      const millisecondsDiff: number = Date.now() - this.birthdate.getTime();
+      const ageDate = new Date(millisecondsDiff);
+      return Math.abs(ageDate.getUTCFullYear() - 1970);
     }
   }
+
 ```
 
-### Creating a row component
-
-To make some separation of concepts we will create a new component that receives a customer and shows its personal info. To achieve this let's start by creating a new folder inside `src/app` called `customer` and create a new `customer-summary.component.ts` file inside it:
+next we are going to create the `customerService`. Add a new folder in `src/app` called `services` and create a `customer.service.ts` file. This service will hold the customers data and it will expose a `getCustomers()` method to return the customers:
 
 ```ts
-import { Component, Input } from '@angular/core';
+import { Injectable  } from '@angular/core';
 import { Customer } from '../models/customer.model';
 
-// We can use prefix for all our components.
-@Component({
-    selector: 'app-customer-summary',
-    templateUrl: './customer-summary.component.html'
-})
-export class CustomerSummaryComponent {
-    @Input() customer: Customer;
+@Injectable()
+export class CustomerService {
+  getCustomers(): Customer[] {
+    return CUSTOMERS;
+  }
 }
+
+const CUSTOMERS : Customer[] = [
+  new Customer(1, 'Jai', 'Sal', '25 June 1981',
+  'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744'),
+  new Customer(2, 'Fer', 'Sal', '25 November 1984',
+  'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236'),
+  new Customer(3, 'Lau', 'Sal', '04 March 2013',
+  'https://vignette2.wikia.nocookie.net/pixar/images/e/ed/Joy-Inside-Out-borders.jpg/revision/latest?cb=20150718214419')
+];
 ```
 
-This component will receive a `Customer` entity and will reference it with the `@Input` decorator to store its reference in the `customer` property. This component will render a template to the customer information, so let's create a `customer-summary.component.html` beside the new component:
+> The `@Injectable()` decorator marks a class as available to an injector for instantiation. This means when the injectable class will be instanced once and that instance will automatically be suplied in all needed components instead of generating a new service.
 
-```html
-<div class="row">
-  <div class="col-md-3">
-    <label>First Name:</label>
-    <span>{{customer.firstName}}</span>
-  </div>
-  <div class="col-md-3">
-    <label>Last Name:</label>
-    <span>{{customer.lastName}}</span>
-  </div>
-  <div class="col-md-3">
-    <label>Age:</label>
-    <span>{{customer.getAge()}}</span>
-  </div>
-  <div class="col-md-3">
-    <div class="portrait">
-      <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
-    </div>
-  </div>
-</div>
-```
-
-Now we have the new `CustomerSummaryComponent` let's declare it in our app's module `declarations` section to be available as a module dependency:
+Next we need to declare the new service in `app.module.ts` to be available in the main module in a `providers` section:
 
 ```diff
   ...
-  import { AppComponent } from './app.component';
-+ import { CustomerSummaryComponent } from './customer/customer-summary.component';
+  import { CustomerContractsComponent } from './customer/customer-contracts.component';
++ import { CustomerService } from './services/customer.service';
 
   @NgModule({
     declarations: [
--     AppComponent
-+     AppComponent,
-+     CustomerSummaryComponent
+      AppComponent,
+      CustomerSummaryComponent
     ],
     imports: [
       BrowserModule,
       FormsModule,
       HttpModule
     ],
-    providers: [],
++   providers: [
++     CustomerService
++   ],
     bootstrap: [AppComponent]
   })
   export class AppModule { }
 ```
 
-Finally we can use the new `CustomerSummaryComponent` in our `AppComponent` template directly thanks to the component registration in our `AppModule`. Let's remove the customer rendering logic and use the `CustomerSummaryComponent` template `app-customer-summary`:
+Then we can add the new service in our `AppComponent`. We'll add it in the `constructor`, remove the customers initialization and call the service to initialize customers:
 
 ```diff
-  <h1>
-    {{title}}
-  </h1>
+  import { Component, OnInit } from '@angular/core';
+  import { Customer } from './models/customer.model';
++ import { CustomerService } from './services/customer.service';
 
-- <div class="row">
--   <div class="col-md-3">
--     <label>First Name:</label>
--     <span>{{customer.firstName}}</span>
--   </div>
--   <div class="col-md-3">
--     <label>Last Name:</label>
--     <span>{{customer.lastName}}</span>
--   </div>
--   <div class="col-md-3">
--     <label>Age:</label>
--     <span>{{customer.getAge()}}</span>
--   </div>
--   <div class="col-md-3">
--     <img class="img-reponsive" alt="Customer Image" [src]="customer.imageUrl"/>
--   </div>
-- </div>
-+ <!--Show how works ngFor-->
-+ <div class="container" *ngFor="let customer of customers">
-+   <app-customer-summary [customer]=customer>
-+   </app-customer-summary>
-+ </div>
+  @Component({
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
+  })
+  export class AppComponent implements OnInit {
+-   title = 'Displaying Collections Demo';
++   title = 'User Interactions Demo';
+    customers: Customer[];
+
+-   constructor() {
++   constructor(private customerService: CustomerService) {
+    }
+
+    ngOnInit() {
+-     this.customers = [
+-       new Customer('Jai', 'Sal', '25 June 1981',
+-       'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744'),
+-       new Customer('Fer', 'Sal', '25 November 1984',
+-       'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236'),
+-       new Customer('Lau', 'Sal', '04 March 2013',
+-       'https://vignette2.wikia.nocookie.net/pixar/images/e/ed/Joy-Inside-Out-borders.jpg/revision/latest?cb=20150718214419')
+-     ];
+-   }
++   this.customers = this.customerService.getCustomers();
+  }
 ```
 
-As you can see we are iterating through the `customers` collection and feeding each `customer` to the `CustomerSummaryComponent` via `customer` attribute using the `ngFor` directive.
+### Creating a new model
 
-> Note we used `<app-customer-summary>` tag instead of `<customer-summary-component>`. This is because we named it **app-customer-summary** in `@Component` decorator of `CustomerSummaryComponent` and the tag name must coincide with the `selector` name.
+Let's create now a `Contract` model to give customers more information. Create a new file in `src/app/models` folder called `contract.model.ts`. It will expose an interface representing the contract data:
 
-Finally let's edit `styles.css` file to make the images smaller:
+```ts
+export interface IContract {
+  id: number;
+  priceMonthly: number;
+  start: Date;
+  isActive: boolean;
+}
+```
+
+Next we'll edit the `Customer` model to optionally include an array of contracts:
 
 ```diff
-- body {
--   padding: 50px;
-- }
-+ .portrait img {
-+   width: 150px;
-+ }
++ import { IContract } from './contract.model';
+
+  export class Customer {
+    id: number;
+    firstName: string;
+    lastName: string;
+    birthdate: Date;
+    imageUrl?: string;
++   contracts?: IContract[];
+
+    constructor(id: number,
+      firstName?: string,
+      lastName?: string,
+      birthdate?: string,
+-     imageUrl?: string) {
++     imageUrl?: string,
++     contracts?: IContract[]) {
+      this.id = id;
+      this.firstName = firstName;
+      this.lastName = lastName;
+      this.birthdate = new Date(birthdate);
+      this.imageUrl = imageUrl;
++     this.contracts = contracts;
+    }
+
+    getAge(): number {
+      const millisecondsDiff: number = Date.now() - this.birthdate.getTime();
+      const ageDate = new Date(millisecondsDiff);
+      return Math.abs(ageDate.getUTCFullYear() - 1970);
+    }
+  }
 ```
 
-To see the result open a command prompt and locate yourself into the project folder and execute `npm start` (or `ng serve`) and open [http://localhost:4200](http://localhost:4200) in the browser;
+Then we can add in the `customerService` some contracts to our customers. We can expose now `getCustomer` and `getCustomerContracts` methods to retrieve a customer and its contracts:
+
+```diff
+  import { Injectable  } from '@angular/core';
+  import { Customer } from '../models/customer.model';
++ import { IContract } from "app/models/contract.model";
+
+  @Injectable()
+  export class CustomerService {
+    getCustomers(): Customer[] {
+      return CUSTOMERS;
+    }
++   getCustomer(customerId: number) {
++     return CUSTOMERS.find(customer => customer.id == customerId);
++   }
++
++   getCustomerContracts(customerId: number): IContract[] {
++     return CUSTOMERS.find(customer => customer.id == customerId).contracts; ;
++   }
+  }
+
+  const CUSTOMERS : Customer[] = [
+    new Customer(1, 'Jai', 'Sal', '25 June 1981',
+-    'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744'),
++   'http://vignette2.wikia.nocookie.net/disney/images/d/d6/ANGER_Fullbody_Render.png/revision/latest?cb=20150615084744',
++   [
++     { id: 1, priceMonthly: 30.56, start: new Date('27 June 2015'), isActive: true },
++     { id: 2, priceMonthly: 20.20, start: new Date('27 June 2010'), isActive: false },
++     { id: 3, priceMonthly: 10.00, start: new Date('27 June 2005'), isActive: false }
++   ]),
+    new Customer(2, 'Fer', 'Sal', '25 November 1984',
+-   'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236'),
++   'http://vignette4.wikia.nocookie.net/disney/images/8/82/SADNESS_Fullbody_Render.png/revision/latest?cb=20150615091236',
++   [
++     { id: 4, priceMonthly: 30.56, start: new Date('27 June 2012'), isActive: false },
++     { id: 5, priceMonthly: 18.60, start: new Date('27 June 2008'), isActive: true },
++     { id: 6, priceMonthly: 9.38, start: new Date('27 June 2002'), isActive: true }
++   ]),
+    new Customer(3, 'Lau', 'Sal', '04 March 2013',
+    'https://vignette2.wikia.nocookie.net/pixar/images/e/ed/Joy-Inside-Out-borders.jpg/revision/latest?cb=20150718214419')
+  ];
+```
+
+
+
+
+
+
 
 ---
 
@@ -193,3 +256,13 @@ Before running the tests make sure you are serving the app via `ng serve`.
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+## Note
+
+Starts from previous demo.
+
+## Steps
+
+In this demo we are going to create our first service. We already have customers hardcoding in our
+app component. First we will extract this to a service, although is goin to still being hardcoding
+data.

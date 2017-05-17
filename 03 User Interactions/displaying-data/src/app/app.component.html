@@ -1,9 +1,16 @@
-<h1>
-  {{title}}
-</h1>
+<div class="container">
+  <h1>
+    {{title}}
+  </h1>
+  <div class="row">
+    <button class="btn btn-primary btn-sm pull-right" (click)="show=!show">Show customers</button>
+  </div>
 
-<!--Show how works ngFor-->
-<div class="container" *ngFor="let customer of customers">
-  <app-customer-summary [customer]=customer>
-  </app-customer-summary>
+  <div class="customers-container" *ngIf="show">
+    <div *ngFor="let customer of customers">
+      <app-customer-summary (customerChange)="customerChangeHandler($event)" [customer]=customer>
+      </app-customer-summary>
+    </div>
+    <app-customer-contracts [userName]="userName" [contracts]="contracts"></app-customer-contracts>
+  </div>
 </div>
